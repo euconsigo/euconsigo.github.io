@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login com Google</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        #buttonDiv {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .message.info {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .user-info {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .user-info h3 {
+            color: #2d3748;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .user-info p {
+            color: #4a5568;
+            font-size: 14px;
+            margin: 6px 0;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: block;
+        }
+
+        .session-info {
+            margin-top: 12px;
+            padding: 10px;
+            background: #e6fffa;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #234e52;
+        }
+
+        .logout-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            background: #c53030;
+        }
+
+        .refresh-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .refresh-btn:hover {
+            background: #3182ce;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🔐</div>
+        <h1>Bem-vindo</h1>
+        <p class="subtitle">Faça login com sua conta Google</p>
+        
+        <div id="buttonDiv"></div>
+        
+        <div id="message" class="message"></div>
+        
+        <div id="userInfo" class="user-info">
+            <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+            <h3>Informações do Usuário</h3>
+            <p><strong>Nome:</strong> <span id="userName"></span></p>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <div class="session-info">
+                <p>✓ Sessão ativa até: <span id="sessionExpiry"></span></p>
+            </div>
+            <button class="refresh-btn" onclick="validateCurrentSession()">Validar Sessão</button>
+            <button class="logout-btn" onclick="handleSignOut()">Sair</button>
+        </div>
+    </div>
+
+    <script>
+        // SUBSTITUA ESTA URL PELA URL DO SEU GOOGLE APPS SCRIPT
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        
+        // SUBSTITUA PELO SEU CLIENT ID DO GOOGLE CLOUD CONSOLE
+        const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+        }
+
+        function showUserInfo(userData, sessionToken) {
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('userEmail').textContent = userData.email;
+            
+            if (userData.picture) {
+                document.getElementById('userAvatar').src = userData.picture;
+            }
+            
+            // Calcula quando a sessão expira (24 horas)
+            const expiryDate = new Date();
+            expiryDate.setHours(expiryDate.getHours() + 24);
+            document.getElementById('sessionExpiry').textContent = 
+                expiryDate.toLocaleString('pt-BR');
+            
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('buttonDiv').style.display = 'none';
+        }
+
+        async function handleCredentialResponse(response) {
+            const tokenId = response.credential;
+            
+            showMessage('Autenticando com Google...', 'loading');
+
+            try {
+                const result = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tokenId: tokenId
+                    })
+                });
+
+                const data = await result.json();
+
+                if (data.success) {
+                    showMessage('Login realizado com sucesso! Sessão criada.', 'success');
+                    
+                    // Armazena o token de sessão (não o token do Google)
+                    localStorage.setItem('sessionToken', data.user.sessionToken);
+                    localStorage.setItem('userData', JSON.stringify(data.user));
+                    
+                    showUserInfo(data.user, data.user.sessionToken);
+                } else {
+                    showMessage(`Erro: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage('Erro ao conectar com o servidor', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        async function validateCurrentSession() {
+            const sessionToken = localStorage.getItem('sessionToken');
+            
+            if (!sessionToken) {
+                showMessage('Nenhuma sessão encontrada', 'error');
+                handleSignOut();
+                return;
+            }
+
+            showMessage('Validando sessão...', 'loading');
+
+            try {
+                const result = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'validateSession',
+                        sessionToken: sessionToken
+                    })
+                });
+
+                const data = await result.json();
+
+                if (data.success) {
+                    showMessage('✓ Sessão válida e ativa!', 'success');
+                } else {
+                    showMessage('Sessão expirada. Faça login novamente.', 'error');
+                    setTimeout(() => handleSignOut(), 2000);
+                }
+            } catch (error) {
+                showMessage('Erro ao validar sessão', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        function handleSignOut() {
+            localStorage.clear();
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('buttonDiv').style.display = 'flex';
+            document.getElementById('message').style.display = 'none';
+            
+            google.accounts.id.disableAutoSelect();
+            initializeGoogleSignIn();
+        }
+
+        function initializeGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: CLIENT_ID,
+                callback: handleCredentialResponse
+            });
+
+            google.accounts.id.renderButton(
+                document.getElementById('buttonDiv'),
+                { 
+                    theme: 'outline', 
+                    size: 'large',
+                    text: 'signin_with',
+                    locale: 'pt-BR'
+                }
+            );
+
+            google.accounts.id.prompt();
+        }
+
+        // Verifica sessão ao carregar a página
+        window.onload = async function() {
+            const sessionToken = localStorage.getItem('sessionToken');
+            const userData = localStorage.getItem('userData');
+            
+            if (sessionToken && userData) {
+                showMessage('Verificando sessão anterior...', 'info');
+                
+                try {
+                    const result = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'validateSession',
+                            sessionToken: sessionToken
+                        })
+                    });
+
+                    const data = await result.json();
+
+                    if (data.success) {
+                        showUserInfo(JSON.parse(userData), sessionToken);
+                        showMessage('Sessão restaurada com sucesso!', 'success');
+                    } else {
+                        showMessage('Sessão expirada. Faça login novamente.', 'error');
+                        localStorage.clear();
+                        initializeGoogleSignIn();
+                    }
+                } catch (error) {
+                    console.error('Erro ao validar sessão:', error);
+                    initializeGoogleSignIn();
+                }
+            } else {
+                initializeGoogleSignIn();
+            }
+        };
+
+        // Valida sessão periodicamente (a cada 5 minutos)
+        setInterval(() => {
+            const sessionToken = localStorage.getItem('sessionToken');
+            if (sessionToken) {
+                validateCurrentSession();
+            }
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
