@@ -231,7 +231,7 @@
                 const result = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         tokenId: tokenId
@@ -272,7 +272,7 @@
                 const result = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: 'validateSession',
@@ -335,7 +335,7 @@
                     const result = await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'text/plain',
                         },
                         body: JSON.stringify({
                             action: 'validateSession',
