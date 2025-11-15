@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio responder questões!</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 25px 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .option-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .option-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .option-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .login-container {
+            display: none;
+        }
+
+        .login-container.active {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .google-btn {
+            background: white;
+            color: #444;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 15px 30px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 30px auto;
+            max-width: 300px;
+        }
+
+        .google-btn:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: #f8f9fa;
+        }
+
+        .google-logo {
+            width: 20px;
+            height: 20px;
+        }
+
+        .back-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 50px;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .option-btn {
+                padding: 20px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Página de Seleção -->
+    <div class="container" id="selection-page">
+        <h1>Desafio responder questões!</h1>
+        <p class="subtitle">Escolha como você quer participar:</p>
+        
+        <div class="options">
+            <button class="option-btn" onclick="selectOption('publico')">
+                <span class="option-text">
+                    Quero mostrar para o mundo que consigo
+                </span>
+            </button>
+            
+            <button class="option-btn" onclick="selectOption('privado')">
+                <span class="option-text">
+                    Eu saber de minhas vitórias já basta
+                </span>
+            </button>
+            
+            <button class="option-btn" onclick="selectOption('anonimo')">
+                <span class="option-text">
+                    Quero usar anonimamente
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Página de Login com Google -->
+    <div class="container login-container" id="login-page">
+        <p class="subtitle">Entre com sua conta Google para continuar</p>
+        
+        <div id="g_id_onload" data-client_id="79230217180-u388nndmh17cda5cudpasphf5h5lj6tr.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_select="true"></div>
+        <div
+          id="login"
+          class="g_id_signin"
+          data-type="standard"
+          data-shape="pill"
+          data-theme="outline"
+          data-text="signin_with"
+          data-size="medium"
+          data-locale="pt-BR"
+          data-logo_alignment="left"
+          data-width="280"
+        ></div>
+
+        <button class="back-btn" onclick="goBack()">← Voltar</button>
+    </div>
+
+    <script>
+        // Variável para armazenar a escolha do usuário
+        let userChoice = null;
+
+        // Função callback para o Google Sign-In
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+            
+            // Decodifica o token JWT para obter informações do usuário
+            const userData = parseJwt(response.credential);
+            console.log('Dados do usuário:', userData);
+            console.log('Modo selecionado:', userChoice);
+            
+            // Aqui você pode enviar os dados para o servidor
+            // ou redirecionar para a próxima página
+            alert('Login realizado com sucesso! Bem-vindo, ' + userData.name);
+        }
+
+        // Função para decodificar o JWT token
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        function selectOption(type) {
+            // Guarda a opção escolhida
+            userChoice = type;
+            console.log('Opção armazenada:', userChoice);
+            
+            if (type === 'publico' || type === 'privado') {
+                // Mostra a página de login para modo público e privado
+                document.getElementById('selection-page').style.display = 'none';
+                document.getElementById('login-page').classList.add('active');
+            } else {
+                // Para modo anônimo
+                alert('Modo Anônimo - Participe sem se identificar!');
+                console.log('Opção selecionada:', type);
+                
+                // Aqui você pode redirecionar para a próxima página
+                // passando a escolha do usuário
+            }
+        }
+
+        function goBack() {
+            // Volta para a página de seleção
+            document.getElementById('login-page').classList.remove('active');
+            document.getElementById('selection-page').style.display = 'block';
+            // Mantém a escolha armazenada caso o usuário volte
+        }
+
+        function onLoginSuccess(userData) {
+            console.log('Login bem-sucedido:', userData);
+            console.log('Modo selecionado:', userChoice);
+            // Redirecionar para a próxima página ou iniciar o desafio
+            // Você pode enviar tanto userData quanto userChoice para o servidor
+        }
+    </script>
+</body>
+</html>
+
